@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style1.css"/>
+    <title>Memorty Game</title>
+</head>
+<body>
+    <div class="game">
+        <div class="game-board">
+        </div>
+    
+        <div class="game-score">
+            0
+        </div>
+    
+        <button id="a1" class="game-start">Start Game!</button>
+    </div>
+</body>
+    <script>
+
+        const memoryGame = {
+                tileCount : 20, //amount of blocks
+                tileOnRow : 5, //amount of blocks in a single row
+                divBoard : null, //specified gameboard div
+                divScore : null, //specified score div
+                tiles : [], //specified data table for mixed tiles
+                tilesChecked : [], //selected tiles
+                moveCount : 0, //amount of moves
+                tilesImg : [ //images for tiles
+                    "images/element1.png",
+                    "images/element2.png",
+                    "images/element3.png",
+                    "images/element4.png",
+                    "images/element5.png",
+                    "images/element6.png",
+                    "images/element7.png",
+                    "images/element8.png",
+                    "images/element9.png",
+                    "images/element10.png"
+                ],
+                canGet : true, //can you click the tiles? (true/false)
+                tilePairs : 0, //amount of matched tiles
+
+                tileClick(e) {
+                    if (this.canGet) {
+                        //in case we havent chosen any element yet
+                        //OR if that specified element does not exist in your specified directory (line 32)
+                        if (!this.tilesChecked[0] || (this.tilesChecked[0].dataset.index !== e.target.dataset.index)) {
+                            this.tilesChecked.push(e.target);
+                            e.target.style.backgroundImage = `url(${this.tilesImg[e.target.dataset.cardType]})`;
+                        }
+
+                        if (this.tilesChecked.length === 2) {
+                            this.canGet = false;
+
+                            if (this.tilesChecked[0].dataset.cardType === this.tilesChecked[1].dataset.cardType) {
+                                setTimeout(() => this.deleteTiles(), 500);
+                            } else {
+                                setTimeout(() => this.resetTiles(), 500);
+                            }
+
+                            this.moveCount++;
+                            this.divScore.innerText = this.moveCount;
+                        }
+                    }
+                },
+
+                deleteTiles() {
+                    this.tilesChecked.forEach(el => {
+                        const emptyDiv = document.createElement("div");
+                        el.after(emptyDiv);
+                        el.remove();
+                    });
+
+                    this.canGet = true;
+                    this.tilesChecked = [];
+
+                    this.tilePairs++;
+
+                    if (this.tilePairs >= this.tileCount / 2) {
+                        alert("You menaged to find all the images!");
+                    }
+                },
+
+                resetTiles() {
+                    this.tilesChecked.forEach(el => el.style.backgroundImage = "");
+                    this.tilesChecked = [];
+                    this.canGet = true;
+                },
+
+                startGame() {
+                    //clearing the board/reset
+                    this.divBoard = document.querySelector(".game-board");
+                    this.divBoard.innerHTML = "";
+
+                    //clearing the score board
+                    this.divScore = document.querySelector(".game-score");
+                    this.divScore.innerHTML = 0;
+
+                    //reseting all variables, before a game reset
+                    this.tiles = [];
+                    this.tilesChecked = [];
+                    this.moveCount = 0;
+                    this.canGet = true;
+                    this.tilePairs = 0;
+
+                    //generating a board containing the amount of tiles in game......
+                    for (let i=0; i<this.tileCount; i++) {
+                        this.tiles.push(Math.floor(i/2));
+                    }
+
+                    //...and we mix it around
+                    for (let i=this.tileCount-1; i>0; i--) {
+                        const swap = Math.floor(Math.random()*i);
+                        const tmp = this.tiles[i];
+                        this.tiles[i] = this.tiles[swap];
+                        this.tiles[swap] = tmp;
+                    }
+
+                    for (let i=0; i<this.tileCount; i++) {
+                        const tile = document.createElement("div");
+                        tile.classList.add("game-tile");
+                        this.divBoard.appendChild(tile);
+
+                        tile.dataset.cardType = this.tiles[i];
+                        tile.dataset.index = i;
+
+                        tile.addEventListener("click", e => this.tileClick(e));
+                    }
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", () => {
+                const startBtn = document.querySelector(".game-start");
+                startBtn.addEventListener("click", e => memoryGame.startGame());
+            });
+
+    </script>
+</html>
